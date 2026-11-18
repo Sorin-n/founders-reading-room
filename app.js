@@ -1,17 +1,239 @@
-const $=s=>document.querySelector(s);
+const $ = selector => document.querySelector(selector);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const names={bezos:{name:'杰夫·贝索斯',en:'Jeff Bezos',company:'AMAZON',theme:'从长期主义，到文明的远方。',photo:'https://upload.wikimedia.org/wikipedia/commons/6/6c/Jeff_Bezos_at_Amazon_Spheres_Grand_Opening_in_Seattle_-_2018_%2839074799225%29_%28cropped%29.jpg',credit:'Seattle City Council · CC BY 2.0',creditUrl:'https://commons.wikimedia.org/wiki/File:Jeff_Bezos_at_Amazon_Spheres_Grand_Opening_in_Seattle_-_2018_(39074799225)_(cropped).jpg'},musk:{name:'埃隆·马斯克',en:'Elon Musk',company:'SPACEX / TESLA',theme:'用科学追问世界，用科幻想象未来。',photo:'https://upload.wikimedia.org/wikipedia/commons/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg',credit:'Debbie Rowe / The Royal Society · CC BY-SA 3.0',creditUrl:'https://commons.wikimedia.org/wiki/File:Elon_Musk_Royal_Society_(crop2).jpg'},zuckerberg:{name:'马克·扎克伯格',en:'Mark Zuckerberg',company:'META',theme:'理解人与社会，理解连接如何发生。',photo:'https://upload.wikimedia.org/wikipedia/commons/1/18/Mark_Zuckerberg_F8_2019_Keynote_%2832830578717%29_%28cropped%29.jpg',credit:'Anthony Quintano · CC BY 2.0',creditUrl:'https://commons.wikimedia.org/wiki/File:Mark_Zuckerberg_F8_2019_Keynote_(32830578717)_(cropped).jpg'},jobs:{name:'史蒂夫·乔布斯',en:'Steve Jobs',company:'APPLE / PIXAR',theme:'在人文与科技的交叉口，寻找另一种可能。',photo:'https://upload.wikimedia.org/wikipedia/commons/d/dc/Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg',credit:'Matthew Yohe · CC BY-SA 3.0',creditUrl:'https://commons.wikimedia.org/wiki/File:Steve_Jobs_Headshot_2010-CROP_(cropped_2).jpg'},gates:{name:'比尔·盖茨',en:'Bill Gates',company:'MICROSOFT',theme:'用阅读校准直觉，用事实认识世界。',photo:'https://upload.wikimedia.org/wikipedia/commons/d/d9/Bill_gates_portrait.jpg',credit:'Ricardo Stuckert / Agência Brasil · Attribution',creditUrl:'https://commons.wikimedia.org/wiki/File:Bill_gates_portrait.jpg'}};
-const people=['bezos','musk','zuckerberg','jobs','gates'].map(id=>({...DATA.find(d=>d.id===id),...names[id]}));
-const labels={spoken:'本人原话',written:'本人撰文',reported:'他人转述'};
-let selected=people.some(p=>p.id===location.hash.slice(1))?location.hash.slice(1):'jobs',filter='all',query='',expanded=false;
-const colors=['#d6d4ba','#c6b793','#a5b2a2','#b6b5a3','#d1b89b','#c4cbbb'];
-function renderPeople(){ $('#people-grid').innerHTML=people.map((p,i)=>`<button class="person ${selected===p.id?'active':''}" data-person="${p.id}" aria-expanded="${selected===p.id}" aria-controls="reading-room"><img src="${p.photo}" alt="${p.name}肖像" referrerpolicy="no-referrer"><span class="person-num">0${i+1}</span><span class="person-company">${p.company}</span><span class="person-info"><span class="person-name">${p.name}</span><span class="person-en">${p.en.toUpperCase()}</span></span><span class="person-bottom"><span>${p.books.length} 个阅读条目 · ${p.videos.length} 段影像</span><span class="person-plus">${selected===p.id?'−':'+'}</span></span></button>`).join(''); $('#archive-count').textContent=`05 人物 / ${people.reduce((a,p)=>a+p.books.length,0)} 阅读条目`; }
-function renderRoom(){const p=people.find(p=>p.id===selected);if(!p){$('#reading-room').innerHTML='';return}$('#reading-room').innerHTML=`<div class="room"><div class="room-header"><div><div class="room-kicker">INSIDE THE MIND / ${p.en.toUpperCase()}</div><h2>${p.name}<span>The bookshelf.</span></h2><p>${p.theme}</p></div><span class="count">${p.books.length} 个条目 · 每项附出处</span></div><div class="room-body"><div class="books-column"><div class="toolbar"><div class="filters" aria-label="筛选证据类型">${[['all','全部'],...Object.entries(labels)].map(([id,label])=>`<button class="filter ${filter===id?'active':''}" data-filter="${id}" aria-pressed="${filter===id}">${label}</button>`).join('')}</div><input type="search" class="search" id="search" placeholder="搜索书名 / 作者" aria-label="搜索当前人物的书名或作者" value="${esc(query)}"></div><div class="book-grid" id="book-grid"></div><div id="more-container"></div><p class="coverage">收录范围 / ${esc(p.coverage)}</p></div><aside><div class="sidebar-title">听他自己说<span>WATCH & LISTEN</span></div>${p.videos.map(v=>`<article class="video"><button class="video-preview" data-video="${esc(v.id)}" aria-label="播放：${esc(v.title)}"><img loading="lazy" src="https://i.ytimg.com/vi/${esc(v.id)}/hqdefault.jpg" alt="${esc(v.title)}"><span class="play">▶</span></button><h3 class="video-caption">${esc(v.title)}</h3><div class="video-meta">${esc(v.channel)} · ${esc(v.year)}</div><p class="video-note">${esc(v.note)}</p><a class="youtube-out" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${esc(v.id)}">在 YouTube 打开 ↗</a></article>`).join('')}<div class="sidebar-links"><div class="sidebar-title">沿着线索继续读<span>GO DEEPER</span></div>${p.links.map(l=>`<a target="_blank" rel="noopener" href="${esc(l.url)}"><span class="link-badge">${l.type==='SOURCE'?'↗':esc(l.type)}</span><span>${esc(l.label)}</span><span class="arrow">↗</span></a>`).join('')}</div><p class="side-note">人物访谈与逐书出处分别标注。HN 是讨论入口，不作为本人荐书的证据。</p></aside></div></div>`;renderBooks();$('#search').addEventListener('input',e=>{query=e.target.value;expanded=true;renderBooks()});}
-function renderBooks(){const p=people.find(p=>p.id===selected),q=query.trim().toLowerCase(),books=p.books.filter(b=>(filter==='all'||b.type===filter)&&(!q||[b.title,b.en,b.author,b.category].join(' ').toLowerCase().includes(q))),shown=expanded?books:books.slice(0,6);$('#book-grid').innerHTML=shown.length?shown.map((b,i)=>`<article class="book"><div class="book-top"><div class="book-art" aria-hidden="true" style="--book-color:${colors[i%colors.length]}"><span>${esc(b.en)}</span><span class="art-mark">${String(p.books.indexOf(b)+1).padStart(2,'0')}</span><small>READ / ARCHIVE</small></div><div class="book-heading"><div class="book-category">${esc(b.category)}</div><h3>${esc(b.title)}</h3><div class="book-en">${esc(b.en)}</div><div class="book-author">${esc(b.author)}</div></div></div><p class="book-quote ${b.quote?'':'paraphrase'}">${b.quote?'“'+esc(b.quote)+'”':esc(b.note.split('。')[0]+'。')}</p><div class="book-meta"><span class="evidence ${b.type}">● ${labels[b.type]}${b.quote?' · 节译':' · 记录摘要'}</span><a href="${esc(b.url)}" class="source-link" target="_blank" rel="noopener">查看出处 ↗</a></div><details><summary>原文与语境</summary>${b.original?`<p class="original">“${esc(b.original)}”</p>`:''}<p>${esc(b.note)}</p><p>${esc(b.source)}</p>${!b.quote?'<p>尚无已核实的逐字荐语，以上为记录或编者摘要。</p>':''}</details></article>`).join(''):'<p class="empty">没有匹配的条目。试试其他书名、作者，或切换来源类型。</p>';$('#more-container').innerHTML=books.length>6?`<button class="show-more" id="show-more">${expanded?'收起书单 ↑':`展开全部 ${books.length} 个条目 ↓`}</button>`:'';$('#show-more')?.addEventListener('click',()=>{expanded=!expanded;renderBooks()});}
-document.addEventListener('click',e=>{const person=e.target.closest('[data-person]');if(person){selected=selected===person.dataset.person?null:person.dataset.person;filter='all';query='';expanded=false;history.replaceState(null,'',selected?'#'+selected:location.pathname);renderPeople();renderRoom();return}const f=e.target.closest('[data-filter]');if(f){filter=f.dataset.filter;expanded=false;renderRoom();return}const v=e.target.closest('[data-video]');if(v){openVideo(v.dataset.video)}});
-function openVideo(id){const v=people.flatMap(p=>p.videos).find(v=>v.id===id);$('#video-content').innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${esc(id)}?autoplay=1&rel=0" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe><h3>${esc(v.title)}</h3><p>${esc(v.channel)} · ${esc(v.year)}</p><p>如播放器不可用，可<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${esc(id)}">直接在 YouTube 观看 ↗</a>。字幕语言取决于原视频提供的选项。</p>`;$('#video-dialog').showModal()}
-for(const d of document.querySelectorAll('dialog')){d.querySelector('.dialog-close').addEventListener('click',()=>d.close());d.addEventListener('click',e=>{if(e.target===d)d.close()})}$('#video-dialog').addEventListener('close',()=>$('#video-content').innerHTML='');
-function info(html){$('#info-content').innerHTML=html;$('#info-dialog').showModal()}
-$('#about-button').addEventListener('click',()=>info(`<div class="room-kicker">ABOUT THE ARCHIVE</div><h2>看书，也看证据。</h2><p>这是一份按人物整理的阅读档案，包含明确推荐、表达喜爱及有出处的阅读影响。收录五位创业者 ${people.reduce((a,p)=>a+p.books.length,0)} 个条目；同一本书被不同人提及时分别记录，系列、单卷及诗作也可能分别列出。</p><p><b>本人原话</b>：公开访谈、演讲，或传记收录的采访原话。<br><b>本人撰文</b>：本人书评、推文或书面选书。<br><b>他人转述</b>：新闻、传记或二手来源；若转录本人文字，会在出处中说明。</p><p>引号内为有依据的短引文节译，可展开英文原文；没有核实逐字荐语时保留摘要，不补造一句话。X、Facebook 的部分原页受访问限制，已保留原帖或档案、转录来源。</p><p>扎克伯格的 2015 年 23 本选目、Brad Stone 记录的贝索斯 12 本内部清单已覆盖。其余是本次能追溯出处的整理，<b>不宣称是五人终身荐书全集</b>。盖茨历年书评的完整入口在其专栏。</p><p>视频为人物访谈或已标明的演讲，不能自动作为同栏所有书籍的推荐证据。HN 仅作延伸讨论。书籍旁的文字小封面为本站排版索引，并非出版社封面。</p>`));
-$('#credits-button').addEventListener('click',()=>info(`<div class="room-kicker">SOURCES & CREDITS</div><h2>资料与图片署名</h2><p>逐书来源可直接从条目打开。文字摘录保留原意，中文为本站节译；人物旁的主题短句为编者概括。</p><p>人物图片来自 Wikimedia Commons，以 CSS 灰阶及裁切展示。图片及其处理版本遵循原图许可；本站与人物及其公司无隶属或背书关系。</p><ul>${people.map(p=>`<li><a target="_blank" rel="noopener" href="${p.creditUrl}">${p.name} · 原图与许可 ↗</a><br>${p.credit}</li>`).join('')}</ul><p>YouTube 缩略图由原视频平台提供，播放通过 YouTube 嵌入播放器进行。</p>`));
-renderPeople();renderRoom();
+const people = ['bezos', 'musk', 'zuckerberg', 'jobs', 'gates'].map(id => ({
+  ...DATA.find(person => person.id === id), ...names[id],
+  shortName: { bezos: '贝索斯', musk: '马斯克', zuckerberg: '扎克伯格', jobs: '乔布斯', gates: '盖茨' }[id]
+}));
+const labels = { spoken: '本人原话', written: '本人撰文', reported: '他人转述' };
+const room = $('#reading-room');
+const peopleGrid = $('#people-grid');
+const infoDialog = $('#info-dialog');
+const videoDialog = $('#video-dialog');
+
+function personFromHash() {
+  const id = location.hash.slice(1);
+  return people.some(person => person.id === id) ? id : 'jobs';
+}
+
+let selected = personFromHash();
+let filter = 'all';
+let query = '';
+let expanded = false;
+
+function renderPeople() {
+  peopleGrid.innerHTML = people.map(person => `
+    <button class="person" type="button" data-person="${person.id}" aria-expanded="false"
+      aria-controls="reading-room" aria-label="${person.name}">
+      <span class="portrait">
+        <img src="${person.photo}" alt="" referrerpolicy="no-referrer" width="200" height="140">
+      </span>
+      <span class="person-label"><span>${person.shortName}</span><span class="person-indicator" aria-hidden="true"></span></span>
+    </button>`).join('');
+  $('#archive-count').textContent = `${people.reduce((total, person) => total + person.books.length, 0)} 个阅读条目`;
+}
+
+function videoCard(video) {
+  return `<article class="video">
+    <button class="video-preview" data-video="${esc(video.id)}" aria-label="播放：${esc(video.title)}">
+      <img loading="lazy" src="https://i.ytimg.com/vi/${esc(video.id)}/hqdefault.jpg" alt="">
+      <span class="play" aria-hidden="true"></span>
+    </button>
+    <h4>${esc(video.title)}</h4>
+    <div class="video-meta">${esc(video.channel)} · ${esc(video.year)}</div>
+    <p>${esc(video.note)}</p>
+    <a class="quiet" href="https://www.youtube.com/watch?v=${esc(video.id)}" target="_blank" rel="noopener">在 YouTube 打开 <span aria-hidden="true">↗</span></a>
+  </article>`;
+}
+
+function renderRoom() {
+  for (const button of peopleGrid.querySelectorAll('.person')) {
+    button.setAttribute('aria-expanded', String(button.dataset.person === selected));
+  }
+  const person = people.find(entry => entry.id === selected);
+  if (!person) {
+    room.innerHTML = '';
+    return;
+  }
+
+  room.innerHTML = `<div class="room">
+    <header class="room-header">
+      <div><h2>${person.name}</h2><p>${person.en} <span>·</span> ${person.company}</p></div>
+      <button type="button" class="jump quiet">看访谈 <span aria-hidden="true">↓</span></button>
+    </header>
+    <div class="room-body">
+      <section class="books-column" aria-labelledby="book-heading">
+        <div class="section-label"><h3 id="book-heading">阅读记录</h3><span id="result-count"></span></div>
+        <div class="toolbar" aria-label="查找阅读记录">
+          <div class="search-field"><span class="search-icon" aria-hidden="true"></span>
+            <input type="search" id="search" placeholder="搜索书名或作者" aria-label="搜索书名或作者">
+            <kbd aria-hidden="true">/</kbd>
+          </div>
+          <div class="filters" aria-label="来源类型">
+            ${[['all', '全部'], ...Object.entries(labels)].map(([id, label]) => `<button type="button" data-filter="${id}" aria-pressed="${id === filter}">${label}</button>`).join('')}
+          </div>
+        </div>
+        <div class="book-list" id="book-list"></div>
+        <div id="more-container"></div>
+        <p class="coverage">${esc(person.coverage)}</p>
+      </section>
+      <aside id="interviews" aria-labelledby="interview-heading" tabindex="-1">
+        <div class="section-label"><h3 id="interview-heading">访谈与影像</h3><span>YouTube</span></div>
+        ${person.videos.map(videoCard).join('')}
+        <div class="source-list">
+          <div class="section-label"><h3>相关出处</h3></div>
+          ${person.links.map(link => `<a href="${esc(link.url)}" target="_blank" rel="noopener"><span>${esc(link.label)}</span><span aria-hidden="true">↗</span></a>`).join('')}
+        </div>
+      </aside>
+    </div>
+  </div>`;
+
+  room.querySelector('.jump').addEventListener('click', () => {
+    $('#interviews').focus({ preventScroll: true });
+    $('#interviews').scrollIntoView({ block: 'start' });
+  });
+  $('#search').addEventListener('input', event => {
+    query = event.target.value;
+    expanded = false;
+    renderBooks(person);
+  });
+  room.querySelector('.filters').addEventListener('click', event => {
+    const button = event.target.closest('[data-filter]');
+    if (!button) return;
+    filter = button.dataset.filter;
+    expanded = false;
+    for (const option of room.querySelectorAll('[data-filter]')) {
+      option.setAttribute('aria-pressed', String(option === button));
+    }
+    renderBooks(person);
+  });
+  renderBooks(person);
+}
+
+function bookCard(book) {
+  const description = book.quote ? `“${esc(book.quote)}”` : esc(book.note.split('。')[0] + '。');
+  return `<article class="book">
+    <div class="book-top">
+      <div><h4>${esc(book.title)}</h4><div class="book-byline">${esc(book.en)} · ${esc(book.author)}</div></div>
+      <span class="category">${esc(book.category)}</span>
+    </div>
+    <p class="book-quote ${book.quote ? '' : 'paraphrase'}">${description}</p>
+    <div class="book-actions">
+      <details>
+        <summary><span class="chevron" aria-hidden="true"></span>原文与语境</summary>
+        ${book.original ? `<p class="original" lang="en">“${esc(book.original)}”</p>` : ''}
+        <p>${esc(book.note)}</p>
+        <p class="detail-source">${esc(book.source)}</p>
+      </details>
+      <div class="book-meta"><span>${labels[book.type]} · ${book.quote ? '节译' : '摘要'}</span>
+        <a href="${esc(book.url)}" target="_blank" rel="noopener" aria-label="查看《${esc(book.title)}》出处">出处 <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderBooks(person) {
+  const keyword = query.trim().toLowerCase();
+  const matching = person.books.filter(book =>
+    (filter === 'all' || book.type === filter) &&
+    [book.title, book.en, book.author, book.category].join(' ').toLowerCase().includes(keyword)
+  );
+  const visible = expanded ? matching : matching.slice(0, 6);
+  const list = $('#book-list');
+  $('#result-count').textContent = `${matching.length} 条`;
+  list.innerHTML = visible.map(bookCard).join('') ||
+    '<p class="empty" role="status">没有匹配的条目。</p>';
+  const more = $('#more-container');
+  more.innerHTML = matching.length > 6 ? `<button class="show-more" aria-expanded="${expanded}" aria-controls="book-list">${expanded ? '收起书单 ↑' : `展开全部 ${matching.length} 条 ↓`}</button>` : '';
+  more.querySelector('button')?.addEventListener('click', () => {
+    expanded = !expanded;
+    renderBooks(person);
+    if (expanded) {
+      const firstNewBook = list.children[6];
+      firstNewBook.tabIndex = -1;
+      firstNewBook.focus({ preventScroll: true });
+      firstNewBook.scrollIntoView({ block: 'nearest' });
+    } else {
+      const expandButton = $('#more-container button');
+      expandButton.focus({ preventScroll: true });
+      expandButton.scrollIntoView({ block: 'nearest' });
+    }
+  });
+}
+
+function resetRoom(person) {
+  selected = person;
+  filter = 'all';
+  query = '';
+  expanded = false;
+  renderRoom();
+}
+
+peopleGrid.addEventListener('click', event => {
+  const button = event.target.closest('[data-person]');
+  if (!button) return;
+  const next = selected === button.dataset.person ? null : button.dataset.person;
+  history.replaceState(null, '', next ? '#' + next : location.pathname + location.search);
+  resetRoom(next);
+});
+window.addEventListener('hashchange', () => {
+  if (people.some(person => person.id === location.hash.slice(1))) resetRoom(personFromHash());
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key !== '/' || event.altKey || event.ctrlKey || event.metaKey ||
+      event.target.closest('input, textarea, [contenteditable], dialog') ||
+      document.querySelector('dialog[open]')) return;
+  const search = $('#search');
+  if (search) {
+    event.preventDefault();
+    search.focus();
+  }
+});
+
+room.addEventListener('click', event => {
+  const button = event.target.closest('[data-video]');
+  if (!button) return;
+  const video = people.find(person => person.id === selected).videos.find(item => item.id === button.dataset.video);
+  $('#video-content').innerHTML = `
+    <iframe src="https://www.youtube-nocookie.com/embed/${esc(video.id)}?autoplay=1&rel=0"
+      title="${esc(video.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <div class="video-dialog-caption"><h2>${esc(video.title)}</h2>
+      <a href="https://www.youtube.com/watch?v=${esc(video.id)}" target="_blank" rel="noopener">在 YouTube 打开 ↗</a>
+    </div>`;
+  videoDialog.showModal();
+});
+
+for (const dialog of [infoDialog, videoDialog]) {
+  dialog.querySelector('.dialog-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) dialog.close();
+  });
+}
+videoDialog.addEventListener('close', () => { $('#video-content').innerHTML = ''; });
+
+function showInfo(html) {
+  $('#info-content').innerHTML = html;
+  infoDialog.showModal();
+}
+
+$('#about-button').addEventListener('click', () => showInfo(`
+  <h2>收录说明</h2>
+  <p>收录明确推荐、表达喜爱和有出处的阅读影响。引号内为短引文节译，展开可见英文原文和语境；其余为资料摘要。</p>
+  <dl>
+    <dt>本人原话</dt><dd>来自访谈、演讲或传记收录的采访原话。</dd>
+    <dt>本人撰文</dt><dd>来自本人书评、推文或书面选书。</dd>
+    <dt>他人转述</dt><dd>来自新闻、传记或二手材料，包括部分原文转录。</dd>
+  </dl>
+  <p>收录扎克伯格 2015 年年度书单的 23 本书及 Brad Stone 记载的贝索斯内部清单。其余材料为本次整理能追溯出处的记录。盖茨历年书评档案见其专栏。</p>
+  <p>访谈及 Hacker News 讨论是延伸资料。逐书证据见每条阅读记录的出处。</p>`));
+
+$('#credits-button').addEventListener('click', () => showInfo(`
+  <h2>资料与图片署名</h2>
+  <p>摘录与节译附在各条记录中。人物照片来自 Wikimedia Commons，页面以灰阶和裁切展示，许可见原图页面。</p>
+  <ul>${people.map(person => `<li><a href="${person.creditUrl}" target="_blank" rel="noopener">${person.name} ↗</a> · ${person.credit}</li>`).join('')}</ul>
+  <p>视频、缩略图和播放器由 YouTube 提供。</p>`));
+
+renderPeople();
+renderRoom();
