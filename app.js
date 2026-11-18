@@ -183,8 +183,8 @@ function resetRoom(person) {
 peopleGrid.addEventListener('click', event => {
   const button = event.target.closest('[data-person]');
   if (!button) return;
+  event.preventDefault();
   const next = selected === button.dataset.person ? null : button.dataset.person;
-  history.replaceState(null, '', next ? '#' + next : location.pathname + location.search);
   resetRoom(next);
 });
 window.addEventListener('hashchange', () => {
