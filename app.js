@@ -33,10 +33,21 @@ function renderPeople() {
   $('#archive-count').textContent = `${people.reduce((total, person) => total + person.books.length, 0)} 个阅读条目`;
 }
 
+function thumbnailUrl(video) {
+  return 'https://i.ytimg.com/vi/' + video.id + '/hqdefault.jpg';
+}
+
+function preloadThumbnails() {
+  for (const video of people.flatMap(person => person.videos)) {
+    const thumbnail = new Image();
+    thumbnail.src = thumbnailUrl(video);
+  }
+}
+
 function videoCard(video) {
   return `<article class="video">
     <button class="video-preview" data-video="${esc(video.id)}" aria-label="播放：${esc(video.title)}">
-      <img loading="lazy" src="https://i.ytimg.com/vi/${esc(video.id)}/hqdefault.jpg" alt="">
+      <img src="${esc(thumbnailUrl(video))}" alt="">
       <span class="play" aria-hidden="true"></span>
     </button>
     <h4>${esc(video.title)}</h4>
@@ -237,3 +248,4 @@ $('#credits-button').addEventListener('click', () => showInfo(`
 
 renderPeople();
 renderRoom();
+preloadThumbnails();
